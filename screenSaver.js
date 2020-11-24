@@ -11,26 +11,28 @@ const imgArr = [
 
 let delayOption = 10000;
 let intervalOption = 5000;
+let inputDaley;
+let inputInterval;
 
-document.getElementById('delay').addEventListener('change', (e)=>{
-    delayOption = e.target.value;
+document.getElementById('delay').addEventListener('change', (e) => {
+    inputDaley = e.target.value;
 });
 
-document.getElementById('interval').addEventListener('change', (e)=>{
-    intervalOption = e.target.value;
+document.getElementById('interval').addEventListener('change', (e) => {
+    inputInterval = e.target.value;
 });
 
-let btn =  document.getElementById('btn')
-btn.addEventListener('click', setOptionsTime);
+let btn = document.getElementById('btn');
 
-function setOptionsTime(){
-    if(delayOption < 1000){
-        delayOption *= 1000;
+
+function setOptionsTime() {
+    if (inputDaley && inputDaley < 1000) {
+        delayOption = inputDaley *= 1000;
     }
-    if(intervalOption < 1000){
-        intervalOption *=1000;
+    if (inputInterval && inputInterval < 1000) {
+        intervalOption = inputInterval *= 1000;
     }
-    
+    console.log('delayOption: ' + delayOption + ' intervalOption: ' + intervalOption)
 };
 
 const randomInteger = (min, max) => {
@@ -38,7 +40,7 @@ const randomInteger = (min, max) => {
     return Math.floor(rand);
 };
 
-const createImgElem =  () => {
+const createImgElem = () => {
     let randImgUrl = randomInteger(0, imgArr.length - 1);
     let root = document.getElementById('root');
     root.insertAdjacentHTML('beforeend', `<img src= ${imgArr[randImgUrl]} class="imageSaver">`);
@@ -81,54 +83,63 @@ function setCoords(elem) {
     elem.style.position = "fixed";
     elem.style.left = rangeX + 'px';
     elem.style.top = rangeY + 'px';
-    elem.style.animation = 'show 1s ease-out';
 };
-//////////////////////////////////////////////////
+
 
 let timerDaley;
 let timerInterval;
-let timerRemove;
 
-const timingStart = (timeD, timeI) => {
-
-    timerInterval =  setTimeout(
-        function setInterval() {
-        document.querySelector('.blind').classList.add("showBlind");
-        let imageSaver = document.querySelector('.imageSaver');
-
-           if (imageSaver) {
-            imageSaver.classList.add("show");
-            imageSaver.addEventListener("animationend", ()=>{
-                imageSaver.style.animation = 'hid 1s ease-out';
-            
-                timerRemove = setTimeout(()=>{
-                    imageSaver.remove();
-                },1000);
-            });
-        } else {
-           createImgElem();
-        }
-
-        timerInterval = setTimeout(setInterval, timeI);
-    }, timeI);
-
-    function disableScreenSaver() {
-       let img =  document.querySelector('.imageSaver');
-        document.querySelector('.blind').classList.remove("showBlind");
-        img && img.remove();
-        clearTimeout(timerInterval);
-        clearTimeout(timerDaley);
-        clearTimeout(timerRemove);
-        timerDaley = setTimeout(()=>{
-            timingStart(delayOption, intervalOption);
-        },timeD)
-       
+const timingIntervalStart = () => {
+    if (!timerDaley) {
+        clearAndPlaningDaley();
+    } else {
+        timerInterval = setTimeout(function run() {
+            let img = document.querySelector('.imageSaver');
+            if (img) {
+                removeImg(img).then(() => {
+                    createImgElem();
+                    showImage();
+                })
+            }
+            timerInterval = setTimeout(run, intervalOption)
+        }, intervalOption);
     }
-    document.addEventListener("keydown", disableScreenSaver);
-    document.addEventListener("mousemove", disableScreenSaver);
-    btn.addEventListener('mousedown', disableScreenSaver);
 };
 
+function showImage() {
+    let imageSaver = document.querySelector('.imageSaver');
+    imageSaver.classList.add("show");
+    imageSaver.style.animation = 'show 0.5s ease-out';
+    console.log('image Show: ' + intervalOption);
+}
 
-timingStart(delayOption, intervalOption);
+function removeImg(imgRemove) {
+    imgRemove.style.animation = 'hid 0.5s ease-out';
+    return new Promise(resolve => setTimeout(() => resolve(imgRemove.remove()), 500));
+}
 
+function clearAndPlaningDaley() {
+    timerDaley && clearTimeout(timerDaley);
+    timerInterval && clearTimeout(timerInterval);
+    timerInterval = null;
+    let img = document.querySelector('.imageSaver');
+    img && img.remove();
+    timerDaley = setTimeout(() => {
+        console.log('daley' + '' + delayOption);
+        if (!timerInterval) {
+            createImgElem();
+            showImage();
+        }
+
+        timingIntervalStart();
+    }, delayOption)
+}
+
+btn.addEventListener('click', () => {
+    setOptionsTime();
+    clearAndPlaningDaley();
+});
+document.addEventListener("keydown", clearAndPlaningDaley);
+document.addEventListener("mousemove", clearAndPlaningDaley);
+
+timingIntervalStart();
