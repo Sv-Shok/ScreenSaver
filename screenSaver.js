@@ -32,7 +32,6 @@ function setOptionsTime() {
     if (inputInterval && inputInterval < 1000) {
         intervalOption = inputInterval *= 1000;
     }
-    console.log('delayOption: ' + delayOption + ' intervalOption: ' + intervalOption)
 };
 
 const randomInteger = (min, max) => {
@@ -110,7 +109,6 @@ function showImage() {
     let imageSaver = document.querySelector('.imageSaver');
     imageSaver.classList.add("show");
     imageSaver.style.animation = 'show 0.5s ease-out';
-    console.log('image Show: ' + intervalOption);
 }
 
 function removeImg(imgRemove) {
@@ -124,13 +122,13 @@ function clearAndPlaningDaley() {
     timerInterval = null;
     let img = document.querySelector('.imageSaver');
     img && img.remove();
+    document.querySelector('.blind').classList.remove("showBlind");
     timerDaley = setTimeout(() => {
-        console.log('daley' + '' + delayOption);
+        document.querySelector('.blind').classList.add("showBlind");
         if (!timerInterval) {
             createImgElem();
             showImage();
         }
-
         timingIntervalStart();
     }, delayOption)
 }
